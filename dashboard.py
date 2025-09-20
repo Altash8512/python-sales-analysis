@@ -1,23 +1,70 @@
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-import seaborn as sns
-import matplotlib.pyplot as plt
 
 @st.cache_data
 def load_data():
     """Loads the sales data, performs cleaning, and returns a DataFrame."""
-    df = pd.read_csv('sales_data.csv')
+    try:
+        df = pd.read_csv('sales_data.csv')
+    except FileNotFoundError:
+        st.error("The 'sales_data.csv' file was not found. Please make sure it is in the same directory as the script.")
+        return None
+    
+    # --- Standardize Column Names ---
+    # Strip whitespace from headers and convert to a consistent case to prevent KeyErrors
+    df.columns = df.columns.str.strip().str.replace(' ', '_')
+
+    # Drop the 'Unnamed:_0' column if it exists
+    if 'Unnamed:_0' in df.columns:
+        df.drop('Unnamed:_0', axis=1, inplace=True)
+
+    # Rename columns to be more descriptive and consistent
+    rename_dict = {
+        'Order_Date': 'Date',
+        'Quantity_Ordered': 'Units_Sold',
+        'Price_Each': 'Unit_Price',
+        'Sales': 'Revenue'
+    }
+    df.rename(columns=rename_dict, inplace=True)
     
     # --- Data Cleaning ---
     # Convert 'Date' to datetime
     df['Date'] = pd.to_datetime(df['Date'])
     
-    # Handle missing values (simple median fill)
-    for col in ['Revenue', 'Profit']:
-        if df[col].isnull().any():
-            median_val = df[col].median()
-            df[col].fillna(median_val, inplace=True)
+    # --- Feature Engineering (to match notebook logic) ---
+    # Create 'Cost' and 'Profit' columns. Assuming a 70% cost for demonstration.
+    df['Cost'] = df['Revenue'] * 0.70
+    df['Profit'] = df['Revenue'] - df['Cost']
+
+    # --- Correctly extract City for Region mapping ---
+    df['City_Name'] = df['Purchase_Address'].apply(lambda x: x.split(',')[1].strip())
+
+    # Create 'Region' from 'City'
+    def get_region(city):
+        if city in ['New York City', 'Boston']:
+            return 'East'
+        elif city in ['San Francisco', 'Los Angeles']:
+            return 'West'
+        elif city in ['Dallas', 'Atlanta']:
+            return 'South'
+        elif city in ['Seattle', 'Portland']:
+            return 'North'
+        else:
+            return 'Central' # Austin and any other fallbacks
+    df['Region'] = df['City_Name'].apply(get_region)
+
+    # Create 'Category' from 'Product'
+    def get_category(product):
+        if any(p in product for p in ['Laptop', 'Monitor', 'PC']):
+            return 'Electronics'
+        elif any(p in product for p in ['iPhone', 'Phone']):
+            return 'Mobile'
+        elif any(p in product for p in ['Cable', 'Headphones', 'Wired', 'Charger', 'Machine']):
+            return 'Accessories'
+        else:
+            return 'Other'
+    df['Category'] = df['Product'].apply(get_category)
             
     # Remove duplicates
     df.drop_duplicates(inplace=True)
@@ -29,6 +76,9 @@ def main():
     st.title("Sales Data Analysis Dashboard")
 
     df = load_data()
+    if df is None:
+        # Stop execution if data loading failed
+        return
 
     # --- Sidebar Filters ---
     st.sidebar.header("Filters")
@@ -44,7 +94,7 @@ def main():
     )
 
     # Filter data based on selection
-    df_filtered = df[df["Region"].isin(selected_region) & df["Category"].isin(selected_category)]
+    df_filtered = df[df["Region"].isin(selected_region) & df["Category"].isin(selected_category)].copy()
 
     if df_filtered.empty:
         st.warning("No data available for the selected filters.")
@@ -95,10 +145,8 @@ def main():
     st.subheader("Correlation Analysis")
     numerical_cols = ['Units_Sold', 'Unit_Price', 'Revenue', 'Cost', 'Profit']
     corr_matrix = df_filtered[numerical_cols].corr()
-    
-    fig_heatmap, ax = plt.subplots()
-    sns.heatmap(corr_matrix, annot=True, fmt=".2f", cmap="coolwarm", ax=ax)
-    st.pyplot(fig_heatmap)
+    fig_heatmap = px.imshow(corr_matrix, text_auto=True, aspect="auto", color_continuous_scale='RdBu', title="Correlation Matrix of Numerical Features")
+    st.plotly_chart(fig_heatmap, use_container_width=True)
 
 
 if __name__ == "__main__":
