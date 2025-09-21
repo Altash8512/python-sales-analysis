@@ -86,9 +86,9 @@ Below are some screenshots of the interactive Streamlit dashboard.
 
 | Monthly Trends & KPIs | Revenue by Category & Region |
 |:-------------------------:|:-------------------------:|
-| !Dashboard Screenshot 1 | !Dashboard Screenshot 2 |
+| ![Dashboard Screenshot 1](screenshots/dashboard_1.png) | ![Dashboard Screenshot 2](screenshots/dashboard_2.png) |
 | **Top 5 Products** | **Correlation Matrix** |
-| !Dashboard Screenshot 3 | !Dashboard Screenshot 4 |
+| ![Dashboard Screenshot 3](screenshots/dashboard_3.png) | ![Dashboard Screenshot 4](screenshots/dashboard_4.png) |
 
 ## Key Insights
 
