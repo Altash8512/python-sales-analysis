@@ -80,6 +80,16 @@ sales-analysis-project/
 - **Regional Analysis**: A pie chart illustrating the revenue contribution of each sales region.
 - **Correlation Analysis**: A heatmap showing the relationships between numerical variables like `Units_Sold`, `Revenue`, and `Profit`.
 
+## Dashboard Preview
+
+Below are some screenshots of the interactive Streamlit dashboard.
+
+| Monthly Trends & KPIs | Revenue by Category & Region |
+|:-------------------------:|:-------------------------:|
+| !Dashboard Screenshot 1 | !Dashboard Screenshot 2 |
+| **Top 5 Products** | **Correlation Matrix** |
+| !Dashboard Screenshot 3 | !Dashboard Screenshot 4 |
+
 ## Key Insights
 
 1.  **Sales Trends**: Sales show seasonality, with peaks likely corresponding to holiday periods.
